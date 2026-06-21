@@ -1,0 +1,114 @@
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 64
+#define OLED_RESET -1
+
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+
+const int buttonPin = 2;
+
+unsigned long pressStart = 0;
+unsigned long lastInputTime = 0;
+
+bool buttonPressed = false;
+String morseChar = "";
+String fullMessage = "";
+
+void setup() {
+  pinMode(buttonPin, INPUT_PULLUP);
+  Serial.begin(9600);
+
+  if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
+    Serial.println("OLED not found");
+    while (1);
+  }
+
+  display.clearDisplay();
+  display.setTextSize(1);
+  display.setTextColor(SSD1306_WHITE);
+  display.setCursor(0, 0);
+  display.println("Morse Code Ready");
+  display.display();
+}
+
+String decodeMorse(String code) {
+  if (code == ".-") return "A";
+  if (code == "-...") return "B";
+  if (code == "-.-.") return "C";
+  if (code == "-..") return "D";
+  if (code == ".") return "E";
+  if (code == "..-.") return "F";
+  if (code == "--.") return "G";
+  if (code == "....") return "H";
+  if (code == "..") return "I";
+  if (code == ".---") return "J";
+  if (code == "-.-") return "K";
+  if (code == ".-..") return "L";
+  if (code == "--") return "M";
+  if (code == "-.") return "N";
+  if (code == "---") return "O";
+  if (code == ".--.") return "P";
+  if (code == "--.-") return "Q";
+  if (code == ".-.") return "R";
+  if (code == "...") return "S";
+  if (code == "-") return "T";
+  if (code == "..-") return "U";
+  if (code == "...-") return "V";
+  if (code == ".--") return "W";
+  if (code == "-..-") return "X";
+  if (code == "-.--") return "Y";
+  if (code == "--..") return "Z";
+  if (code == "-----") return "0";
+  if (code == ".----") return "1";
+  if (code == "..---") return "2";
+  if (code == "...--") return "3";
+  if (code == "....-") return "4";
+  if (code == ".....") return "5";
+  if (code == "-....") return "6";
+  if (code == "--...") return "7";
+  if (code == "---..") return "8";
+  if (code == "----.") return "9";
+  return "?";
+}
+
+void displayAll(String morse, String decoded, String msg) {
+  display.clearDisplay();
+  display.setCursor(0, 0);
+  display.print("Morse: "); display.println(morse);
+  display.print("Char : "); display.println(decoded);
+  display.print("Msg : "); display.println(msg);
+  display.display();
+}
+
+void loop() {
+  bool currentState = digitalRead(buttonPin) == LOW;
+
+  if (currentState && !buttonPressed) {
+    buttonPressed = true;
+    pressStart = millis();
+  }
+
+  if (!currentState && buttonPressed) {
+    buttonPressed = false;
+    unsigned long pressDuration = millis() - pressStart;
+
+    if (pressDuration < 400) {
+      morseChar += ".";
+    } else {
+      morseChar += "-";
+    }
+
+    lastInputTime = millis();
+    displayAll(morseChar, "", fullMessage);
+  }
+
+  if (!buttonPressed && morseChar != "" && millis() - lastInputTime > 1000) {
+    String decoded = decodeMorse(morseChar);
+    fullMessage += decoded;
+    displayAll(morseChar, decoded, fullMessage);
+    morseChar = "";
+  }
+}
