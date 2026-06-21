@@ -1,7 +1,7 @@
 # Morse Code Decoder using Arduino and OLED Display
 
-![Output](output/output0.jpeg)
-![Output](output/output1.jpeg)
+![Output](output/output0.jpg)
+![Output](output/output1.jpg)
 
 ## Overview
 
